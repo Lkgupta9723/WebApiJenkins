@@ -13,7 +13,7 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/Lkgupta9723/WebApiJenkins.git'
             }
         }
-    }
+    
 //          stage('Terraform Init') {
 //             steps {
 //                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
