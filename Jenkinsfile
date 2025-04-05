@@ -24,7 +24,13 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                withCredentials([ azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
+               withCredentials([azureServicePrincipal(
+            credentialsId: 'AZURE_CREDENTIAL_ID', // Replace with your actual Jenkins credentials ID
+            subscriptionIdVariable: 'AZURE_SUBSCRIPTION_ID',
+            clientIdVariable: 'AZURE_CLIENT_ID',
+            clientSecretVariable: 'AZURE_CLIENT_SECRET',
+            tenantIdVariable: 'AZURE_TENANT_ID'
+        )]) {
                     bat """
                         az login --service-principal -u "%AZURE_CLIENT_ID%" -p "%AZURE_CLIENT_SECRET%" --tenant "%AZURE_TENANT_ID%"
                         powershell Compress-Archive -Path ./publish/* -DestinationPath ./publish.zip -Force
