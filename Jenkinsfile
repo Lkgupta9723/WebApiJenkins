@@ -1,10 +1,10 @@
 pipeline {
     agent any
-
     environment {
         AZURE_CREDENTIALS_ID = 'jenkins-pipeline-sp'
-        RESOURCE_GROUP = 'WebServiceRG'
-        APP_SERVICE_NAME = 'lg97'
+        RESOURCE_GROUP       = 'WebServiceRG'
+        APP_SERVICE_NAME     = 'lg97'
+        // TF_WORKING_DIR       = '.'
     }
 
     stages {
@@ -13,6 +13,46 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/Lkgupta9723/WebApiJenkins.git'
             }
         }
+//          stage('Terraform Init') {
+//             steps {
+//                 withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
+//                     bat """
+//                     echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
+//                     cd %TF_WORKING_DIR%
+//                     echo "Initializing Terraform..."
+//                     terraform init
+//                     """
+//                 }
+//             }
+//         }
+
+//         stage('Terraform Plan') {
+//     steps {
+//         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
+//             bat """
+//             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
+//             cd %TF_WORKING_DIR%
+//             terraform plan -out=tfplan
+//             """
+//         }
+//     }
+// }
+
+
+//         stage('Terraform Apply') {
+//     steps {
+//         withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
+//             bat """
+//             echo "Navigating to Terraform Directory: %TF_WORKING_DIR%"
+//             cd %TF_WORKING_DIR%
+//             echo "Applying Terraform Plan..."
+//             terraform apply -auto-approve tfplan
+//             """
+//         }
+//     }
+// }
+
+    
 
         stage('Build') {
             steps {
@@ -22,30 +62,25 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+       stage('Deploy') {
     steps {
-        withCredentials([azureServicePrincipal(
-            credentialsId: 'AZURE_CREDENTIAL_ID', // Replace with your actual Jenkins credentials ID
-            subscriptionIdVariable: 'AZURE_SUBSCRIPTION_ID',
-            clientIdVariable: 'AZURE_CLIENT_ID',
-            clientSecretVariable: 'AZURE_CLIENT_SECRET',
-            tenantIdVariable: 'AZURE_TENANT_ID'
-        )]) {
+        withCredentials([azureServicePrincipal(credentialsId: AZURE_CREDENTIALS_ID)]) {
             bat """
-            az login --service-principal -u "%AZURE_CLIENT_ID%" -p "%AZURE_CLIENT_SECRET%" --tenant "%AZURE_TENANT_ID%"
-            az webapp deploy --resource-group WebServiceRG --name lg97 --src-path ./publish --type zip
+            powershell Compress-Archive -Path ./publish/* -DestinationPath ./publish.zip -Force
+            az webapp deploy --resource-group %RESOURCE_GROUP% --name %APP_SERVICE_NAME% --src-path ./publish.zip --type zip
             """
         }
     }
 }
+
     }
 
     post {
         success {
-            echo '✅ Deployment Successful!'
+            echo 'Deployment Successful!'
         }
         failure {
-            echo '❌ Deployment Failed!'
+            echo 'Deployment Failed!'
         }
     }
 }
